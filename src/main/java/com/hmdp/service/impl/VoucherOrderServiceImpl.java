@@ -12,7 +12,9 @@ import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -51,6 +53,20 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if (seckillVoucher.getStock() < 1){
             return Result.fail("优惠卷已经被抢光了");
         }
+        Long userId = UserHolder.getUser().getId();
+        synchronized (userId.toString().intern()){
+            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+            return proxy.createVoucherOrder(voucherId);
+        }
+    }
+    @Transactional
+    public Result createVoucherOrder(Long voucherId){
+        // 一人一单逻辑
+        Long userId = UserHolder.getUser().getId();
+        long count = query().eq("voucher_id", voucherId).eq("user_id", userId).count();
+        if (count > 0){
+            return Result.fail("你已经抢过该订单了");
+        }
         // 扣减库存
         boolean success = seckillVoucherService.update()
                 .setSql("stock = stock - 1")
@@ -66,14 +82,15 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 设置订单id
         long orderId = redisIdWorker.nextId("order");
         // 设置用户id
-        Long userId = UserHolder.getUser().getId();
+        Long id = UserHolder.getUser().getId();
         // 设置代金卷id
         voucherOrder.setVoucherId(voucherId);
         voucherOrder.setId(orderId);
-        voucherOrder.setUserId(userId);
+        voucherOrder.setUserId(id);
         // 将订单数据保存到表中
         save(voucherOrder);
         // 返回订单id
         return Result.ok(orderId);
+        //执行到这里，锁已经被释放了，但是可能当前事务还未提交，如果此时有线程进来，不能确保事务不出问题
     }
 }

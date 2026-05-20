@@ -76,6 +76,11 @@
             <artifactId>commons-email</artifactId>
             <version>1.4</version>
         </dependency>
+        <!-- 代理对象-->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
