@@ -60,7 +60,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 创建锁对象
         SimpleRedisLock redisLock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
         // 获取锁对象
-        boolean isLock = redisLock.tryLock(120);
+        boolean isLock = redisLock.tryLock(1200);
         // 加锁失败，说明当前用户开了多个线程抢优惠卷，但是由于key是SETNX，所以不能创建key，的等key的ttl过期或释放锁（删除key）
         if (!isLock) {
             return Result.fail("开多个线程抢票私募");
