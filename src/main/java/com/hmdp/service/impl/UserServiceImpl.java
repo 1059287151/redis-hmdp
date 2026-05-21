@@ -85,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         // 保存用户信息到redis
         // 生成随机token作为登入令牌
-        String token = UUID.randomUUID().toString();
+        String token = UUID.randomUUID().toString().replace("-","");
         // 将User对象作为hash存储
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         // 注意
