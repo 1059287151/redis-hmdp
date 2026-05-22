@@ -13,6 +13,8 @@ import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private final ISeckillVoucherService seckillVoucherService;
     private final RedisIdWorker redisIdWorker;
     private final StringRedisTemplate stringRedisTemplate;
+    private final RedissonClient redissonClient;
 
     @Override
     public Result seckillVoucher(Long voucherId) {
@@ -57,10 +60,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail("优惠卷已经被抢光了");
         }
         Long userId = UserHolder.getUser().getId();
-        // 创建锁对象
+        /*// 创建锁对象
         SimpleRedisLock redisLock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
         // 获取锁对象
-        boolean isLock = redisLock.tryLock(1200);
+        boolean isLock = redisLock.tryLock(1200);*/
+        RLock redisLock = redissonClient.getLock("order:" + userId);
+        boolean isLock = redisLock.tryLock();
         // 加锁失败，说明当前用户开了多个线程抢优惠卷，但是由于key是SETNX，所以不能创建key，的等key的ttl过期或释放锁（删除key）
         if (!isLock) {
             return Result.fail("开多个线程抢票私募");
@@ -71,7 +76,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return proxy.createVoucherOrder(voucherId);
         } finally {
             //释放锁
-            redisLock.unLock();
+            redisLock.unlock();
         }
     }
     @Transactional

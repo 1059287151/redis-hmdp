@@ -76,10 +76,16 @@
             <artifactId>commons-email</artifactId>
             <version>1.4</version>
         </dependency>
-        <!-- 代理对象-->
+        <!-- 代理对象 -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
+        </dependency>
+        <!-- Redisson -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+        <version>3.13.6</version>
         </dependency>
     </dependencies>
 

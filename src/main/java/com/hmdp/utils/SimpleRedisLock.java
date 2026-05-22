@@ -14,9 +14,9 @@ public class SimpleRedisLock implements ILock{
     //在获取锁的时候存入线程标识（用UUID标识，在一个JVM中，ThreadId一般不会重复，但是我们现在是集群模式，有多个JVM，多个JVM之间可能会出现ThreadId重复的情况）
     private static final String ID_PREFIX = UUID.randomUUID().toString(true) + "-";
     //具体业务名称，将前缀和业务名拼接之后当作key
-    private String name;
+    private final String name;
     //这里不是@autowired注入，采用的是构造器注入，在创建SimpleRedisLock是将RedisTemplate作为参数传入
-    private StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     // redis的Lua脚本
     private static final DefaultRedisScript<Long> UNLOCK_SCRIPT;
     static {
