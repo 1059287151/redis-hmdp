@@ -40,7 +40,7 @@ public class SimpleRedisLock implements ILock{
         return Boolean.TRUE.equals(success);
     }
 
-    // 还没测试
+    // lua脚本要么不执行，要么全部执行，所以能防止不同线程误删锁问题
     @Override
     public void unLock() {
         stringRedisTemplate.execute(UNLOCK_SCRIPT,
